@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+2
+<html lang="es">
+3
+<head>
+4
+<meta charset="UTF-8">
+5
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+6
+<title>Calculadora Mesa Negociadora</title>
+7
+ 
+8
+<style>
+9
+body{
+10
+font-family: Arial, sans-serif;
+11
+background:#f4f6f8;
+12
+margin:0;
+13
+padding:20px;
+14
+}
+15
+ 
+16
+.container{
+17
+max-width:900px;
+18
+margin:auto;
+19
+background:white;
+20
+padding:20px;
+21
+border-radius:12px;
+22
+box-shadow:0 2px 10px rgba(0,0,0,.10);
+23
+}
+24
+ 
+25
+h1{
+26
+text-align:center;
+27
+color:#0A66C2;
+28
+}
+29
+ 
+30
+input{
+31
+width:100%;
+32
+padding:10px;
+33
+margin-bottom:10px;
+34
+box-sizing:border-box;
+35
+}
+36
+ 
+37
+button{
+38
+width:100%;
+39
+padding:12px;
+40
+font-size:16px;
+41
+background:#0A66C2;
+42
+color:white;
+43
+border:none;
+44
+border-radius:6px;
+45
+cursor:pointer;
+46
+}
+47
+ 
+48
+button:hover{
+49
+background:#084d92;
+50
+}
+51
+ 
+52
+table{
+53
+width:100%;
+54
+border-collapse:collapse;
+55
+margin-top:15px;
+56
+}
+57
+ 
+58
+th,td{
+59
+border:1px solid #ddd;
+60
+padding:8px;
+61
+text-align:center;
+62
+}
+63
+ 
+64
+th{
+65
+background:#e9eef5;
+66
+}
+67
+ 
+68
+.ok{
+69
+color:green;
+70
+font-weight:bold;
+71
+}
+72
+ 
+73
+.info{
+74
+background:#eef7ff;
+75
+border-left:5px solid #0A66C2;
+76
+padding:10px;
+77
+margin-top:10px;
+78
+}
+79
+ 
+80
+.error{
+81
+color:red;
+82
+font-weight:bold;
+83
+}
+84
+ 
+85
+textarea{
+86
+width:100%;
+87
+height:180px;
+88
+margin-top:10px;
+89
+}
+90
+</style>
+91
+</head>
+92
+ 
+93
+<body>
+94
+ 
+95
+<div class="container">
+96
+ 
+97
+<h1>Calculadora Mesa Negociadora</h1>
+98
+ 
+99
+<label>Puestos de la mesa</label>
+100
+<input type="number" id="puestosMesa" value="13">
+101
+ 
+102
+<h3>Sindicatos</h3>
+103
+ 
+104
+<input id="nombre1" value="CCOO">
+105
+<input id="delegados1" type="number" placeholder="Delegados">
+106
+ 
+107
+<input id="nombre2" value="UGT">
+108
+<input id="delegados2" type="number" placeholder="Delegados">
+109
+ 
+110
+<input id="nombre3" value="CSIF">
+111
+<input id="delegados3" type="number" placeholder="Delegados">
+112
+ 
+113
+<input id="nombre4" value="USO">
+114
+<input id="delegados4" type="number" placeholder="Delegados">
+115
+ 
+116
+<input id="nombre5" value="CGT">
+117
+<input id="delegados5" type="number" placeholder="Delegados">
+118
+ 
+119
+<button onclick="calcular()">Calcular</button>
+120
+ 
+121
+<div id="resultado"></div>
+122
+ 
+123
+</div>
+124
+ 
+125
+<script>
+126
+ 
+127
+function calcular(){
+128
+ 
+129
+let puestosMesa =
+130
+parseInt(document.getElementById("puestosMesa").value);
+131
+ 
+132
+let sindicatos = [];
+133
+ 
+134
+for(let i=1;i<=5;i++){
+135
+ 
+136
+let nombre =
+137
+document.getElementById("nombre"+i).value.trim();
+138
+ 
+139
+let delegados =
+140
+parseInt(
+141
+document.getElementById("delegados"+i).value
+142
+) || 0;
+143
+ 
+144
+if(delegados>0){
+145
+ 
+146
+sindicatos.push({
+147
+nombre:nombre,
+148
+delegados:delegados
+149
+});
+150
+ 
+151
+}
+152
+}
+153
+ 
+154
+if(sindicatos.length===0){
+155
+ 
+156
+document.getElementById("resultado").innerHTML=
+157
+"<p class='error'>Debe introducir delegados.</p>";
+158
+ 
+159
+return;
+160
+}
+161
+ 
+162
+let totalDelegados =
+163
+sindicatos.reduce((a,b)=>a+b.delegados,0);
+164
+ 
+165
+sindicatos.forEach(s=>{
+166
+ 
+167
+s.cuota =
+168
+(s.delegados/totalDelegados) * puestosMesa;
+169
+ 
+170
+s.entero =
+171
+Math.floor(s.cuota);
+172
+ 
+173
+s.resto =
+174
+s.cuota - s.entero;
+175
+ 
+176
+s.puestos =
+177
+s.entero;
+178
+ 
+179
+});
+180
+ 
+181
+let puestosAsignados =
+182
+sindicatos.reduce((a,b)=>a+b.puestos,0);
+183
+ 
+184
+let pendientes =
+185
+puestosMesa - puestosAsignados;
+186
+ 
+187
+sindicatos.sort((a,b)=>{
+188
+ 
+189
+if(b.resto!==a.resto){
+190
+return b.resto-a.resto;
+191
+}
+192
+ 
+193
+return b.delegados-a.delegados;
+194
+ 
+195
+});
+196
+ 
+197
+let ultimoBeneficiado = null;
+198
+let explicacionRestos = "";
+199
+ 
+200
+for(let i=0;i<pendientes;i++){
+201
+ 
+202
+sindicatos[i].puestos++;
+203
+ 
+204
+ultimoBeneficiado =
+205
+sindicatos[i];
+206
+ 
+207
+explicacionRestos +=
+208
+"• " +
+209
+sindicatos[i].nombre +
+210
+" recibe 1 puesto por resto " +
+211
+sindicatos[i].resto.toFixed(3) +
+212
+"<br>";
+213
+ 
+214
+}
+215
+ 
+216
+let correccion = "";
+217
+ 
+218
+let sindicatosCero =
+219
+sindicatos.filter(s=>s.puestos===0);
+220
+ 
+221
+sindicatosCero.forEach(sindicatoCero=>{
+222
+ 
+223
+sindicatoCero.puestos = 1;
+224
+ 
+225
+if(
+226
+ultimoBeneficiado &&
+227
+ultimoBeneficiado.puestos>1
+228
+){
+229
+ 
+230
+ultimoBeneficiado.puestos--;
+231
+ 
+232
+correccion +=
+233
+"• " +
+234
+sindicatoCero.nombre +
+235
+" quedaba con 0 representantes.<br>" +
+236
+"Se asigna 1 representante y se detrae 1 puesto de " +
+237
+ultimoBeneficiado.nombre +
+238
+" (último beneficiado por restos).<br><br>";
+239
+}
+240
+ 
+241
+});
+242
+ 
+243
+let sumaFinal =
+244
+sindicatos.reduce((a,b)=>a+b.puestos,0);
+245
+ 
+246
+let validacion =
+247
+sumaFinal===puestosMesa
+248
+? "<p class='ok'>✓ Reparto validado correctamente.</p>"
+249
+: "<p class='error'>✗ Error: la suma no coincide con los puestos de mesa.</p>";
+250
+ 
+251
+let html="";
+252
+ 
+253
+html+=validacion;
+254
+ 
+255
+html+=
+256
+"<div class='info'>" +
+257
+"<strong>Total delegados:</strong> "+
+258
+totalDelegados+
+259
+"<br>" +
+260
+"<strong>Puestos de la mesa:</strong> "+
+261
+puestosMesa+
+262
+"</div>";
+263
+ 
+264
+html += `
+265
+<table>
+266
+<tr>
+267
+<th>Sindicato</th>
+268
+<th>Delegados</th>
+269
+<th>Cuota</th>
+270
+<th>Entero</th>
+271
+<th>Resto</th>
+272
+<th>Puestos</th>
+273
+</tr>
+274
+`;
+275
+ 
+276
+sindicatos
+277
+.sort((a,b)=>b.delegados-a.delegados)
+278
+.forEach(s=>{
+279
+ 
+280
+html += `
+281
+<tr>
+282
+<td>${s.nombre}</td>
+283
+<td>${s.delegados}</td>
+284
+<td>${s.cuota.toFixed(3)}</td>
+285
+<td>${s.entero}</td>
+286
+<td>${s.resto.toFixed(3)}</td>
+287
+<td><strong>${s.puestos}</strong></td>
+288
+</tr>
+289
+`;
+290
+ 
+291
+});
+292
+ 
+293
+html += "</table>";
+294
+ 
+295
+html += `
+296
+<div class="info">
+297
+<h3>Asignación por restos</h3>
+298
+${explicacionRestos || "No hubo puestos pendientes"}
+299
+</div>
+300
+`;
+301
+ 
+302
+if(correccion!=""){
+303
+ 
+304
+html += `
+305
+<div class="info">
+306
+<h3>Garantía de representación mínima</h3>
+307
+${correccion}
+308
+</div>
+309
+`;
+310
+ 
+311
+}
+312
+ 
+313
+let acta = "RESULTADO MESA NEGOCIADORA\\n\\n";
+314
+ 
+315
+sindicatos
+316
+.sort((a,b)=>b.delegados-a.delegados)
+317
+.forEach(s=>{
+318
+ 
+319
+acta +=
+320
+s.nombre +
+321
+": " +
+322
+s.puestos +
+323
+" representantes\\n";
+324
+ 
+325
+});
+326
+ 
+327
+acta +=
+328
+"\\nTotal puestos mesa: " +
+329
+puestosMesa;
+330
+ 
+331
+html += `
+332
+<h3>Texto para acta</h3>
+333
+<textarea readonly>${acta}</textarea>
+334
+`;
+335
+ 
+336
+document.getElementById("resultado").innerHTML=
+337
+html;
+338
+ 
+339
+}
+340
+ 
+341
+</script>
+342
+ 
+343
+</body>
+344
+</html>
